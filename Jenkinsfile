@@ -16,4 +16,16 @@ environment {
             }
         }
     }
+
+    stage('SonarQube analysis') {
+    environment {
+      scannerHome = tool 'devops-sonar-scanner'
+    }
+    steps{
+    withSonarQubeEnv('devops-sonarqube-server') {
+      sh "${scannerHome}/bin/sonar-scanner"
+    }
+    }
+  }
+
 }
