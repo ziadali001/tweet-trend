@@ -23,13 +23,26 @@ environment {
         }
 
         stage('SonarQube analysis') {
-        environment {
-            scannerHome = tool 'devops-sonar-scanner'
-        }
-            steps{
-            withSonarQubeEnv('devops-sonarqube-server') {
-                sh "${scannerHome}/bin/sonar-scanner"
+            environment {
+                scannerHome = tool 'devops-sonar-scanner'
             }
+            steps{
+                withSonarQubeEnv('devops-sonarqube-server') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                }
+            }
+        }
+
+        stage("Quality Gate"){
+            steps {
+                script {
+                    timeout(time: 1, unit: 'HOURS') { 
+                        def qg = waitForQualityGate() 
+                        if (qg.status != 'OK') {
+                            error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                        }
+                    }
+                }
             }
         }
     }    
