@@ -10,12 +10,18 @@ environment {
 }
 
     stages {
-        stage('build') {
+        stage('Build') {
             steps {
-                sh 'mvn clean deploy'
+                sh 'mvn clean deploy -Dmaven.test.skip=true'
             }
         }
-    
+
+        stage('Test') {
+            steps {
+                sh 'mvn surefire-report:report'
+            }
+        }
+
         stage('SonarQube analysis') {
         environment {
             scannerHome = tool 'devops-sonar-scanner'
