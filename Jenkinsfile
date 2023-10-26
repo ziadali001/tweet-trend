@@ -1,4 +1,6 @@
 def registry = 'https://devops005.jfrog.io'
+def imageName = 'devops005.jfrog.io/devops-docker-local/ttrend'
+def version   = '2.1.2'
 
 pipeline {
     agent {
@@ -14,13 +16,17 @@ environment {
     stages {
         stage('Build') {
             steps {
+                echo "<----------- Build Stage Started ---------->"
                 sh 'mvn clean deploy -Dmaven.test.skip=true'
+                echo "<----------- Build Stage Completed ---------->"
             }
         }
 
         stage('Test') {
             steps {
+                echo "<----------- Unit Test Started ---------->"
                 sh 'mvn surefire-report:report'
+                echo "<----------- Unit Test Completed ---------->"
             }
         }
 
@@ -69,6 +75,28 @@ environment {
                      buildInfo.env.collect()
                      server.publishBuildInfo(buildInfo)
                      echo '<--------------- Jar Publish Ended --------------->'
+                }
+            }
+        }
+
+        stage(" Docker Build ") {
+            steps {
+                script {
+                    echo '<--------------- Docker Build Started --------------->'
+                    app = docker.build(imageName+":"+version)
+                    echo '<--------------- Docker Build Ends --------------->'
+                }
+            }
+        }
+
+        stage (" Docker Publish "){
+            steps {
+                script {
+                    echo '<--------------- Docker Publish Started --------------->'  
+                    docker.withRegistry(registry, 'jfrog-cred'){
+                        app.push()
+                    }    
+                    echo '<--------------- Docker Publish Ended --------------->'  
                 }
             }
         }
